@@ -26,8 +26,12 @@ use Symfony\Component\String\Slugger\SluggerInterface;
         new GetCollection(),
         new Get(),
         new MetadataPost(denormalizationContext:['groups' => 'post:write'], normalizationContext:['groups' => 'post:read']),
-        new Patch(denormalizationContext:['groups' => 'post:write'], normalizationContext:['groups' => 'post:read']),
-        new Delete()
+        new Patch(
+            security: 'object.getUser() == user',
+            denormalizationContext:['groups' => 'post:write'], 
+            normalizationContext:['groups' => 'post:read']
+        ),
+        new Delete(security: 'object.getUser() == user')
     ]
 )]
 #[ApiFilter(SearchFilter::class, properties:['title' => 'partial'])]
@@ -62,6 +66,11 @@ class Post
     #[ORM\ManyToOne(inversedBy: 'posts')]
     #[Groups(['post:write', 'read:collection', 'post:read'])]
     private ?Category $category = null;
+
+    #[ORM\ManyToOne(inversedBy: 'posts')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['read:collection', 'post:read'])]
+    private ?User $user = null;
 
     // complet createdAt automatiquement
     #[Orm\PrePersist]
@@ -156,6 +165,18 @@ class Post
     public function setCategory(?Category $category): static
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }
