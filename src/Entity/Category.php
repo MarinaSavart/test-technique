@@ -19,9 +19,12 @@ use Symfony\Component\Validator\Constraints\Length;
     normalizationContext:['groups' => 'read:category'],
     operations: [
         new GetCollection(),
-        new Get(),
+        new Get(denormalizationContext:['groups' => 'category:write']),
         new MetadataPost(),
-        new Delete(),
+        new Delete(
+            openapiContext: ['security' => [['JWT' => []]]],
+            security: "is_granted('ROLE_ADMIN')",
+        ),
     ]
 )]
 class Category
@@ -34,7 +37,7 @@ class Category
 
     #[ORM\Column(length: 255)]
     #[
-        Groups(['post:read', 'read:category']),
+        Groups(['category:write', 'post:read', 'read:category']),
         Length(min: 3)
     ]
     private ?string $name = null;

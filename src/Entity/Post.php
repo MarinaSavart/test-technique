@@ -21,14 +21,16 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 #[Orm\HasLifecycleCallbacks] // ecoute les events doctrines
 #[UniqueEntity('slug')]
 #[ApiResource(
+    openapiContext: ['security' => [['JWT' => []]]],
+    security: "is_granted('ROLE_USER')",
+    denormalizationContext:['groups' => 'post:write'], 
     normalizationContext:['groups' => 'read:collection'],
     operations: [
         new GetCollection(),
         new Get(),
-        new MetadataPost(denormalizationContext:['groups' => 'post:write'], normalizationContext:['groups' => 'post:read']),
+        new MetadataPost(normalizationContext:['groups' => 'post:read']),
         new Patch(
             security: 'object.getUser() == user',
-            denormalizationContext:['groups' => 'post:write'], 
             normalizationContext:['groups' => 'post:read']
         ),
         new Delete(security: 'object.getUser() == user')
