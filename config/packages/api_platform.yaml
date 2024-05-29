@@ -1,0 +1,11 @@
+api_platform:
+  title: Test Technique Api Platform
+  version: 1.0.0
+  formats:
+      jsonld: ['application/ld+json']
+
+  swagger:
+    api_keys:
+        JWT:
+          name: Authorization
+          type: header
