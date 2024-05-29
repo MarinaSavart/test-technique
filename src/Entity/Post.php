@@ -2,7 +2,10 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
@@ -18,43 +21,60 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 #[Orm\HasLifecycleCallbacks] // ecoute les events doctrines
 #[UniqueEntity('slug')]
 #[ApiResource(
-    operations:[
+    normalizationContext:['groups' => 'read:collection'],
+    operations: [
         new GetCollection(),
         new Get(),
-        new MetadataPost(denormalizationContext:['groups' => ['post:write']]),
-        new Patch(denormalizationContext:['groups' => ['post:write']]),
+        new MetadataPost(denormalizationContext:['groups' => 'post:write'], normalizationContext:['groups' => 'post:read']),
+        new Patch(denormalizationContext:['groups' => 'post:write'], normalizationContext:['groups' => 'post:read']),
+        new Delete()
     ]
-
 )]
+#[ApiFilter(SearchFilter::class, properties:['title' => 'partial'])]
 class Post
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['read:collection', 'post:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['post:write'])]
+    #[Groups(['post:write', 'read:collection', 'post:read'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['post:read'])]
     private ?string $slug = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['post:write'])]
+    #[Groups(['post:write', 'read:collection', 'post:read'])]
     private ?string $content = null;
 
     #[ORM\Column]
+    #[Groups(['read:collection', 'post:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['read:collection', 'post:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\ManyToOne(inversedBy: 'posts')]
+    #[Groups(['post:write', 'read:collection', 'post:read'])]
+    private ?Category $category = null;
 
     // complet createdAt automatiquement
     #[Orm\PrePersist]
     public function setCreateAt(): void
     {
         $this->createdAt = new \DateTimeImmutable();
+    }
+
+    // complet updatedAt automatiquement
+    #[Orm\PreUpdate]
+    public function setUpdateAt(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     // complet slug automatiquement
@@ -124,6 +144,18 @@ class Post
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getCategory(): ?Category
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?Category $category): static
+    {
+        $this->category = $category;
 
         return $this;
     }
