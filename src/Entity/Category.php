@@ -16,6 +16,7 @@ use Symfony\Component\Validator\Constraints\Length;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 #[ApiResource(
+    paginationEnabled: false,
     normalizationContext:['groups' => 'read:category'],
     operations: [
         new GetCollection(),
