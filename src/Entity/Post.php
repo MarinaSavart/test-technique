@@ -8,8 +8,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post as MetadataPost;
+use ApiPlatform\Metadata\Put;
 use App\Repository\PostRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -29,7 +29,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
         new GetCollection(),
         new Get(),
         new MetadataPost(normalizationContext:['groups' => 'post:read']),
-        new Patch(
+        new Put(
             security: 'object.getUser() == user',
             normalizationContext:['groups' => 'post:read']
         ),
